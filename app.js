@@ -11,13 +11,11 @@ app.use(bodyParser.json());
 
 var ipUrl = "http://169.254.169.254/latest/meta-data/public-ipv4";
 
-/*
 // getting the keys
 var options = {
-    key : fs.readFileSync('../keys/cpserver.key'),
-    cert : fs.readFileSync('../keys/cpserver.crt')
+    key : fs.readFileSync('../keys/trendserver.key'),
+    cert : fs.readFileSync('../keys/trendserver.crt')
 }
-*/
 
 var config = JSON.parse(fs.readFileSync("../mongoconfig.json"));
 var login = 'mongodb://'+config.host+':'+config.port+'/'+config.database
@@ -31,7 +29,8 @@ MongoClient.connect(login, function(err, database){
 
     db = database;
 
-    app.listen(process.env.PORT || 80);
+    //app.listen(process.env.PORT || 80);
+    https.createServer(options, app).listen(process.env.PORT || 443);
     console.log("MongoDB Server Started!");
 });
 
