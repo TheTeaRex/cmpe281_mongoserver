@@ -3,7 +3,7 @@
   "description": "trendserver",
   "version": "1.0.0",
   "scripts": {
-    "start": "node app.js"
+    "start": "sudo nodejs app.js"
   },
   "dependencies": {
     "body-parser": "^1.14.1",
