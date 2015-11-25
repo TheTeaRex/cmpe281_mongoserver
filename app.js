@@ -13,11 +13,11 @@ var ipUrl = "http://169.254.169.254/latest/meta-data/public-ipv4";
 
 // getting the keys
 var options = {
-    key : fs.readFileSync('../keys/trendserver.key'),
-    cert : fs.readFileSync('../keys/trendserver.crt')
+    key : fs.readFileSync('trendserver.key'),
+    cert : fs.readFileSync('trendserver.crt')
 }
 
-var config = JSON.parse(fs.readFileSync("../mongoconfig.json"));
+var config = JSON.parse(fs.readFileSync("mongoconfig.json"));
 var login = 'mongodb://'+config.host+':'+config.port+'/'+config.database
 console.log(login);
 
