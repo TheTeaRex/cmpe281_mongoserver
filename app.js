@@ -34,7 +34,7 @@ MongoClient.connect(login, function(err, database){
     console.log("MongoDB Server Started!");
 });
 
-var getInfo = function(shorturl, callback){
+var checkExist = function(shorturl, callback){
     var cursor = db.collection(mycollection).findOne({shorturl:shorturl}, function(err,doc){
         if (doc != null){
             callback(doc);
@@ -46,7 +46,11 @@ var getInfo = function(shorturl, callback){
 
 var insertInfo = function(data, callback){ 
     //checking to see if shorturl exist already
-    db.collection(mycollection).insertOne(data, function(err, data){
+    input = {shorturl:data.shorturl, 
+             longurl:data.longurl, 
+             totalcount:1,
+             users:[{IP:data.user, count:1}]}
+    db.collection(mycollection).insertOne(input, function(err, data){
         if (!err){
             console.log("Inserted a new entry.");
             callback("success");
@@ -57,14 +61,13 @@ var insertInfo = function(data, callback){
     });
 };
 
-var updateInfo = function(data, originalCount, callback) {
-    //checking to make sure data exist
-    var newcount = parseInt(originalCount) + parseInt(data.count);
-    db.collection(mycollection).updateOne( 
+var updateInfo = function(data, callback) {
+    //update total count
+    db.collection(mycollection).update( 
         {shorturl:data.shorturl},
         {
-            $set: {source: data.source,
-                   count: newcount
+            $inc: {
+                   totalcount : 1
             }
         }, function(err, result){
             if (!err) {
@@ -76,41 +79,38 @@ var updateInfo = function(data, originalCount, callback) {
             }
         }
     );
+    //update user count
+    db.collection(mycollection).update(
+    {shorturl:data.shorturl, "users.IP":data.user},
+    {
+        $inc :{"users.$.count": 1}
+    },function(err, result){
+        result = JSON.parse(result);
+        if (!err) {
+            // no IP found
+            if (result.nModified == '0'){
+                db.collection(mycollection).update(
+                    {shorturl : data.shorturl},
+                    {$addToSet : {users: {IP:data.user, count:1} }},
+                    function(err1, result1){
+                        if (err1) {console.log("Error: Not able to update user!")};
+                    });
+            }
+            console.log("Updated user count");
+        }
+        else{
+            console.log("Error: Not able to update user!");
+            console.log(err);
+        }
+    }
+    );
 };
 
 var handle_post = function (req, res) {
     console.log("Post: ..." );
     console.log(req.body);
-    /*
-    if (req.body.action == "find"){
-        getInfo(req.body.shorturl, function(result){
-            res.setHeader('Content-Type', 'application/json');
-            if (result != null){
-                result.status = "found";
-                delete result._id;
-                res.json(result);
-            } else {
-                res.json({status:"not found"});
-            }
-        });
-    } else if (req.body.action == "insert"){
-        data = req.body
-        delete data.action;
-        insertInfo(data,function(state){
-            res.setHeader('Content-Type', 'application/json');
-            var data = {status:state};
-            res.json(data);
-        });
-    } else if (req.body.action == "update") {
-        updateInfo(req.body, function(state){
-            res.setHeader('Content-Type', 'application/json');
-            var data = {status:state};
-            res.json(data);
-        });
-    }
-    */
     var data = req.body;
-    getInfo(req.body.shorturl,function(result){
+    checkExist(req.body.shorturl,function(result){
         //no result found, so insert
         if (result == null){
             data.count = 1;
@@ -122,7 +122,7 @@ var handle_post = function (req, res) {
         //found result, so update the count and source
         else{
             data.count = 1;
-            updateInfo(data, result.count, function(state){
+            updateInfo(data, function(state){
                 res.setHeader('Content-Type', 'application/json');
                 res.json({status:state});
             });
