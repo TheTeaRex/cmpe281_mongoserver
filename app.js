@@ -46,54 +46,42 @@ var getInfo = function(shorturl, callback){
 
 var insertInfo = function(data, callback){ 
     //checking to see if shorturl exist already
-    getInfo(data.shorturl, function(result){
-        if (result == null){
-            db.collection(mycollection).insertOne(data, function(err, result){
-                if (!err){
-                    console.log("Inserted a new entry.");
-                    callback("success");
-                }else{
-                    console.log("Error: Not able to insert!");
-                    callback("fail");
-                }
-            });
-        } else {
-            console.log("Entry already exists, no insert has done.");
+    db.collection(mycollection).insertOne(data, function(err, data){
+        if (!err){
+            console.log("Inserted a new entry.");
             callback("success");
+        }else{
+            console.log("Error: Not able to insert!");
+            callback("fail");
         }
     });
 };
 
-var updateInfo = function(data, callback) {
+var updateInfo = function(data, originalCount, callback) {
     //checking to make sure data exist
-    getInfo(data.shorturl, function(result){
-        if (result != null){
-            var newcount = parseInt(result.count) + parseInt(data.count);
-            db.collection(mycollection).updateOne( 
-                {shorturl:data.shorturl},
-                {
-                    $set: {source: data.source,
-                           count: newcount
-                    }
-                }, function(err, result){
-                    if (!err) {
-                        console.log("Update complete!");
-                        callback("success");
-                    } else {
-                        console.log("Error: Not able to update!");
-                        callback("fail");
-                    }
-                });
-        }else{
-            console.log("Error: No such data found!");
-            callback("not found");
+    var newcount = parseInt(originalCount) + parseInt(data.count);
+    db.collection(mycollection).updateOne( 
+        {shorturl:data.shorturl},
+        {
+            $set: {source: data.source,
+                   count: newcount
+            }
+        }, function(err, result){
+            if (!err) {
+                console.log("Update complete!");
+                callback("success");
+            } else {
+                console.log("Error: Not able to update!");
+                callback("fail");
+            }
         }
-    });
+    );
 };
 
 var handle_post = function (req, res) {
     console.log("Post: ..." );
     console.log(req.body);
+    /*
     if (req.body.action == "find"){
         getInfo(req.body.shorturl, function(result){
             res.setHeader('Content-Type', 'application/json');
@@ -120,6 +108,26 @@ var handle_post = function (req, res) {
             res.json(data);
         });
     }
+    */
+    var data = req.body;
+    getInfo(req.body.shorturl,function(result){
+        //no result found, so insert
+        if (result == null){
+            data.count = 1;
+            insertInfo(data, function(state){
+                res.setHeader('Content-Type', 'application/json');
+                res.json({status:state});
+            });
+        }
+        //found result, so update the count and source
+        else{
+            data.count = 1;
+            updateInfo(data, result.count, function(state){
+                res.setHeader('Content-Type', 'application/json');
+                res.json({status:state});
+            });
+        }
+    });
 }
 
 app.post("*", handle_post );
