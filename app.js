@@ -110,24 +110,27 @@ var handle_post = function (req, res) {
     console.log("Post: ..." );
     console.log(req.body);
     var data = req.body;
-    checkExist(req.body.shorturl,function(result){
-        //no result found, so insert
-        if (result == null){
-            data.count = 1;
-            insertInfo(data, function(state){
-                res.setHeader('Content-Type', 'application/json');
-                res.json({status:state});
-            });
-        }
-        //found result, so update the count and source
-        else{
-            data.count = 1;
-            updateInfo(data, function(state){
-                res.setHeader('Content-Type', 'application/json');
-                res.json({status:state});
-            });
-        }
-    });
+    if (req.body.action == "update") {
+        delete data.action;
+        checkExist(data.shorturl,function(result){
+            //no result found, so insert
+            if (result == null){
+                data.count = 1;
+                insertInfo(data, function(state){
+                    res.setHeader('Content-Type', 'application/json');
+                    res.json({status:state});
+                });
+            }
+            //found result, so update the count and source
+            else{
+                data.count = 1;
+                updateInfo(data, function(state){
+                    res.setHeader('Content-Type', 'application/json');
+                    res.json({status:state});
+                });
+            }
+        });
+    }
 }
 
 app.post("*", handle_post );
