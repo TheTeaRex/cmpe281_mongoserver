@@ -61,6 +61,18 @@ var insertInfo = function(data, callback){
     });
 };
 
+var readTopTen = function(callback){
+    var result;
+    db.collection(mycollection).find().sort({totalcount:-1}).limit(10).toArray(function(err, doc){
+        if (!err){
+            console.log("Found results!");
+            callback(doc);
+        } else {
+            consol.log("Error");
+        }
+    });
+};
+
 var updateInfo = function(data, callback) {
     //update total count
     db.collection(mycollection).update( 
@@ -108,7 +120,7 @@ var updateInfo = function(data, callback) {
 
 var handle_post = function (req, res) {
     console.log("Post: ..." );
-    console.log(req.body);
+    console.log("Request Body: " + JSON.stringify(req.body));
     var data = req.body;
     if (req.body.action == "update") {
         delete data.action;
@@ -130,6 +142,13 @@ var handle_post = function (req, res) {
                 });
             }
         });
+    } else if (req.body.action == "read") {
+        console.log("Read Received!");
+        readTopTen(function(result){
+            res.setHeader('Content-Type', 'application/json');
+            console.log(result);
+            res.json(result);
+        })
     }
 }
 
