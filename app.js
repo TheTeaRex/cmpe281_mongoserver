@@ -63,7 +63,7 @@ var insertInfo = function(data, callback){
 
 var readTopTen = function(callback){
     var result;
-    db.collection(mycollection).find().sort({totalcount:-1}).limit(10).toArray(function(err, doc){
+    db.collection(mycollection).find({},{"_id":0}).sort({totalcount:-1}).limit(10).toArray(function(err, doc){
         if (!err){
             console.log("Found results!");
             callback(doc);
@@ -146,7 +146,7 @@ var handle_post = function (req, res) {
         console.log("Read Received!");
         readTopTen(function(result){
             res.setHeader('Content-Type', 'application/json');
-            console.log(result);
+            //console.log(result);
             res.json(result);
         })
     }
