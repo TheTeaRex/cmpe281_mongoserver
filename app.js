@@ -144,11 +144,26 @@ var handle_post = function (req, res) {
         });
     } else if (req.body.action == "read") {
         console.log("Read Received!");
-        readTopTen(function(result){
-            res.setHeader('Content-Type', 'application/json');
-            //console.log(result);
-            res.json(result);
-        })
+        if(!req.body.hasOwnProperty('shorturl')){
+            readTopTen(function(result){
+                res.setHeader('Content-Type', 'application/json');
+                //console.log(result);
+                res.json(result);
+            });
+        } else {
+            checkExist(req.body.shorturl, function(result){
+                res.setHeader('Content-Type', 'application/json');
+                //console.log(result);
+                if (result!=null){
+                    delete result._id;
+                    result.status = "found";
+                    res.json(result);
+                } else {
+                    result = {status:"not found"};
+                    res.json(result);
+                }
+            });
+        }
     }
 }
 
