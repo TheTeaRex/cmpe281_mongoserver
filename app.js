@@ -19,7 +19,7 @@ var options = {
 
 var config = JSON.parse(fs.readFileSync("mongoconfig.json"));
 var login = 'mongodb://'+config.host+':'+config.port+'/'+config.database
-console.log(login);
+//console.log(login);
 
 var db;
 var mycollection = config.collection;
