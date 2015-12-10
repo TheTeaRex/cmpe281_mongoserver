@@ -17,7 +17,7 @@ var options = {
     cert : fs.readFileSync('trendserver.crt')
 }
 
-var config = JSON.parse(fs.readFileSync("mongoconfig.json"));
+var config = JSON.parse(fs.readFileSync("config.json"));
 var login = 'mongodb://'+config.host+':'+config.port+'/'+config.database
 //console.log(login);
 
