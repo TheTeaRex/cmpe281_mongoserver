@@ -151,7 +151,7 @@ var handle_post = function (req, res) {
                 res.json(result);
             });
         } else {
-            checkExist(req.body.shorturl, function(result){
+            checkExist(req.body.shorturl.trim(), function(result){
                 res.setHeader('Content-Type', 'application/json');
                 //console.log(result);
                 if (result!=null){
